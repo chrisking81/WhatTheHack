@@ -38,8 +38,9 @@ However, if you work with Azure and on a regular basis, these are tools you shou
 
 Your coach will provide you with a `Resources.zip` file that contains resource files you will use to complete some of the challenges for this hack.  
 
-> [!IMPORTANT]
-> Please download the file from here
+> ### Please download the file from the following link:
+>
+> [`aka.ms/azMonHack/resources`](https://aka.ms/azMonHack/resources)
 
 The Azure Bicep templates and scripts developed by your team to deploy the eShopOnWeb Azure environment are included in this package.
 
@@ -59,6 +60,10 @@ You will find the provided `main.bicep` template and its associated script files
 
 Navigate to this location in your Azure Cloud Shell or Windows Terminal. You may use either the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/?msclkid=6b97242fb99411ec83659823c955fa16) or the [PowerShell Az module](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) to deploy the Bicep template.
 
+> ### Please deploy to the following subscription name
+>
+> `MS-Symposium-Event-AM`
+
 #### Azure CLI
 
 1. Log into your Azure Subscription with the Azure CLI: 
@@ -67,19 +72,13 @@ Navigate to this location in your Azure Cloud Shell or Windows Terminal. You may
     ```
     **NOTE:** If you are using the Azure Cloud Shell, you can skip this step as the Azure CLI is already logged into your Azure subscription.
 
-1. The deployment files require the `Microsoft.OperationsManagement` resource provider to be registered in your Azure subscription. This is not registered by default in a new Azure subscription. You can register it by running the following command:
-
-    ```bash
-    az provider register -n "Microsoft.OperationsManagement"
-    ```
-
 1. Deploy the template by running the following Azure CLI command from wherever you have unpacked the `/Challenge-00/` folder:
 
     ```bash
     az deployment sub create --name "<deploymentName>" --location "<azure-region>" -f main.bicep --verbose
     ```
     
-    - We recommend you use your initials for the  `<deploymentName>` value.
+    - Please use your **BRID** for the  `<deploymentName>` value.
     - The `<azure-region>` value must be one of the pre-defined Azure Region names. You can view the list of available region names by running the following command: `az account list-locations -o table`
     - You will be prompted to enter a value for a Password which will be used for the Azure virtual machines, VM Scale Set instances, and SQL Server.  Enter a password that adheres to the [Azure VM Password Requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq#what-are-the-password-requirements-when-creating-a-vm-)
     - **NOTE:** This deployment will take approximately 20-25 minutes.
@@ -94,18 +93,12 @@ Navigate to this location in your Azure Cloud Shell or Windows Terminal. You may
 
     **NOTE:** If you are using the Azure Cloud Shell, you can skip this step as PowerShell is already logged into your Azure subscription.
 
-1. The deployment files require the `Microsoft.OperationsManagement` resource provider to be registered in your Azure subscription. This is not registered by default in a new Azure subscription. You can register it by running the following command:
-
-    ```PowerShell
-    Register-AzResourceProvider -ProviderNamespace Microsoft.OperationsManagement
-    ```
-
 1. Deploy the template by running the following PowerShell command from wherever you have unpacked the `/Challenge-00/` folder:
 
     ```PowerShell
     New-AzDeployment -Name "<deploymentName>" -Location "<azure-region>" -TemplateFile "main.bicep" -Verbose
     ```
-    - We recommend you use your initials for the  `<deploymentName>` value.
+    - Please use your **BRID** for the  `<deploymentName>` value.
     - The `<azure-region>` value must be one of the pre-defined Azure Region names. You can view the list of available region names by running the following command: `az account list-locations -o table`
     - You will be prompted to enter a value for a Password which will be used for the Azure virtual machines, VM Scale Set instances, and SQL Server.  Enter a password that adheres to the [Azure VM Password Requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq#what-are-the-password-requirements-when-creating-a-vm-)
     - **NOTE:** This deployment will take approximately 20-25 minutes.
