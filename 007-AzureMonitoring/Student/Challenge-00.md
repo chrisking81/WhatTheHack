@@ -38,6 +38,9 @@ However, if you work with Azure and on a regular basis, these are tools you shou
 
 Your coach will provide you with a `Resources.zip` file that contains resource files you will use to complete some of the challenges for this hack.  
 
+[!IMPORTANT]
+Please download the file from here
+
 The Azure Bicep templates and scripts developed by your team to deploy the eShopOnWeb Azure environment are included in this package.
 
 If you have installed all of the tools listed above and plan to work on your local workstation, you should download and unpack the `Resources.zip` file there too.
