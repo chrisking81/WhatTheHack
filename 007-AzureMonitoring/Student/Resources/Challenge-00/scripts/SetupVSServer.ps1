@@ -27,7 +27,7 @@ Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/
 $proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList ('/install','/quiet') -WorkingDirectory $exeFileNetCore.Directory.ToString() -Passthru)
 $proc | Wait-Process 
 #>
-
+<#
 # Install Microsoft .Net Core 7.0.102
 $exeDotNetTemp = [System.IO.Path]::GetTempPath().ToString() + "dotnet-sdk-7.0.102-win-x64.exe"
 if (Test-Path $exeDotNetTemp) { Remove-Item $exeDotNetTemp -Force }
@@ -37,9 +37,19 @@ Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/
 # Run the exe with arguments
 $proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList ('/install','/quiet') -WorkingDirectory $exeFileNetCore.Directory.ToString() -Passthru)
 $proc | Wait-Process 
+#>
 
-try
-{
+# Install Microsoft .Net Core 8.0.302
+$exeDotNetTemp = [System.IO.Path]::GetTempPath().ToString() + "dotnet-sdk-8.0.302-win-x64.exe"
+if (Test-Path $exeDotNetTemp) { Remove-Item $exeDotNetTemp -Force }
+# Download file from Microsoft Downloads and save to local temp file (%LocalAppData%/Temp/2)
+$exeFileNetCore = [System.IO.Path]::GetTempFileName() | Rename-Item -NewName "dotnet-sdk-8.0.302-win-x64.exe" -PassThru
+Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/b6f19ef3-52ca-40b1-b78b-0712d3c8bf4d/426bd0d376479d551ce4d5ac0ecf63a5/dotnet-sdk-8.0.302-win-x64.exe" -OutFile $exeFileNetCore
+# Run the exe with arguments
+$proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList ('/install', '/quiet') -WorkingDirectory $exeFileNetCore.Directory.ToString() -Passthru)
+$proc | Wait-Process 
+
+try {
     # Disable Internet Explorer Enhanced Security Configuration
     $AdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
     $UserKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
@@ -84,6 +94,21 @@ $find1 = '    "IdentityConnection": "Server=(localdb)\\mssqllocaldb;Integrated S
 $replace1 = '    "IdentityConnection": "Server=' + $SQLServername + ';Integrated Security=false;User ID=' + $SQLusername + ';Password=' + $SQLpassword + ';Initial Catalog=Microsoft.eShopOnWeb.Identity;TrustServerCertificate=True"'
 (Get-Content $appsettingsfile).replace($find1, $replace1) | Set-Content $appsettingsfile -Force
 
+#modify program.cs
+$programcsfile = 'C:\eshoponweb\eShopOnWeb-main\src\Web\program.cs'
+$find = 'builder.Configuration.AddAzureKeyVault(new Uri(builder.Configuration["AZURE_KEY_VAULT_ENDPOINT"] ?? ""), credential);'
+$replace = '//builder.Configuration.AddAzureKeyVault(new Uri(builder.Configuration["AZURE_KEY_VAULT_ENDPOINT"] ?? ""), credential);'
+(Get-Content $programcsfile).replace($find, $replace) | Set-Content $programcsfile -Force
+$find1 = 'var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());'
+$replace1 = '//var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());'
+(Get-Content $programcsfile).replace($find1, $replace1) | Set-Content $programcsfile -Force
+$find2 = '        var connectionString = builder.Configuration[builder.Configuration["AZURE_SQL_CATALOG_CONNECTION_STRING_KEY"] ?? ""];'
+$replace2 = '        var connectionString = "Server=' + $SQLServername + ';Integrated Security=false;User ID=' + $SQLusername + ';Password=' + $SQLpassword + ';Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;TrustServerCertificate=True";'
+(Get-Content $programcsfile).replace($find2, $replace2) | Set-Content $programcsfile -Force
+$find3 = '        var connectionString = builder.Configuration[builder.Configuration["AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY"] ?? ""];'
+$replace3 = '        var connectionString = "Server=' + $SQLServername + ';Integrated Security=false;User ID=' + $SQLusername + ';Password=' + $SQLpassword + ';Initial Catalog=Microsoft.eShopOnWeb.Identity;TrustServerCertificate=True";'
+(Get-Content $programcsfile).replace($find3, $replace3) | Set-Content $programcsfile -Force
+
 #add exception to ManageController.cs
 $ManageControllerfile = 'C:\eshoponweb\eShopOnWeb-main\src\Web\Controllers\ManageController.cs'
 $Match = [regex]::Escape("public async Task<IActionResult> ChangePassword()")
@@ -92,7 +117,7 @@ $NewLine = 'throw new ApplicationException($"Oh no!  Error!  Error! Yell at Rob!
 $Content = Get-Content $ManageControllerfile -Force
 $Index = ($content | Select-String -Pattern $Match).LineNumber + 2
 $NewContent = @()
-0..($Content.Count-1) | Foreach-Object {
+0..($Content.Count - 1) | Foreach-Object {
     if ($_ -eq $index) {
         $NewContent += $NewLine
     }
@@ -111,16 +136,16 @@ $proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentL
 $proc | Wait-Process
 
 #This is the addition for dotnet tool restore command to be placed after Run dotnet restore with arguments and before Configure CatalogDb
-$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('tool','restore') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnettoolrestoreoutput.txt" -Passthru)
+$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('tool', 'restore') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnettoolrestoreoutput.txt" -Passthru)
 $proc | Wait-Process
 
 #Configure CatalogDb
 
-$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('ef','database','update','-c','catalogcontext','-p','../Infrastructure/Infrastructure.csproj','-s','Web.csproj') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnetefcatoutput.txt" -Passthru)
+$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('ef', 'database', 'update', '-c', 'catalogcontext', '-p', '../Infrastructure/Infrastructure.csproj', '-s', 'Web.csproj') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnetefcatoutput.txt" -Passthru)
 $proc | Wait-Process
 
 #Configure Identity Db
-$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('ef','database','update','-c','appidentitydbcontext','-p','../Infrastructure/Infrastructure.csproj','-s','Web.csproj') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnetefappoutput.txt" -Passthru)
+$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('ef', 'database', 'update', '-c', 'appidentitydbcontext', '-p', '../Infrastructure/Infrastructure.csproj', '-s', 'Web.csproj') -WorkingDirectory $eShopWebDestination -RedirectStandardOutput "c:\windows\temp\dotnetefappoutput.txt" -Passthru)
 $proc | Wait-Process
 
 #Run dotnet build
@@ -137,5 +162,5 @@ Grant-SmbShareAccess -Name "eShopPub" -AccountName Everyone -AccessRight Full -F
 
 # Run dotnet publish to to publish files to our share created above
 $eShopWebDestination = "C:\eshoponweb\eShopOnWeb-main\src\Web"
-$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('publish','--output','C:\eShopPub\wwwroot\') -WorkingDirectory $eShopWebDestination -Passthru -RedirectStandardOutput "c:\windows\temp\dotnetpuboutput.txt")
+$proc = (Start-Process -FilePath 'C:\Program Files\dotnet\dotnet.exe' -ArgumentList ('publish', '--output', 'C:\eShopPub\wwwroot\') -WorkingDirectory $eShopWebDestination -Passthru -RedirectStandardOutput "c:\windows\temp\dotnetpuboutput.txt")
 $proc | Wait-Process

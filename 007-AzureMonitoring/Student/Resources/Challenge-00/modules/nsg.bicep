@@ -14,7 +14,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-06-01' = [for Subnet 
   }
 }]
 
-resource nsgDiags 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = [ for i in range(0, length(Subnets)): {
+resource nsgDiags 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = [for i in range(0, length(Subnets)): {
   name: 'diag-${Subnets[i].NSG}'
   scope: nsg[i]
   properties: {
@@ -24,18 +24,18 @@ resource nsgDiags 'Microsoft.Insights/diagnosticSettings@2017-05-01-preview' = [
       {
         category: 'NetworkSecurityGroupEvent'
         enabled: true
-        retentionPolicy: {
-          days: 31
-          enabled: true
-        }
+        // retentionPolicy: {
+        //   days: 31
+        //   enabled: true
+        // }
       }
       {
         category: 'NetworkSecurityGroupRuleCounter'
         enabled: true
-        retentionPolicy: {
-          days: 31
-          enabled: true
-        }
+        // retentionPolicy: {
+        //   days: 31
+        //   enabled: true
+        // }
       }
     ]
   }

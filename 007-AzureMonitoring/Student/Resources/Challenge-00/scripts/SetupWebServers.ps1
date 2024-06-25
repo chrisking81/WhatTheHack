@@ -27,7 +27,7 @@ Invoke-WebRequest -Uri http://download.microsoft.com/download/0/1/D/01DC28EA-638
 # Prepare a log file name
 $logFile = [System.IO.Path]::GetTempFileName()
 # Prepare the arguments to execute the MSI
-$arguments= '/i ' + $msiFile + ' ADDLOCAL=ALL /qn /norestart LicenseAccepted="0" /lv ' + $logFile
+$arguments = '/i ' + $msiFile + ' ADDLOCAL=ALL /qn /norestart LicenseAccepted="0" /lv ' + $logFile
 # Sample = msiexec /i C:\Users\{user}\AppData\Local\Temp\2\tmp9267.msi ADDLOCAL=ALL /qn /norestart LicenseAccepted="0" /lv $logFile
 # Execute the MSI and wait for it to complete
 $proc = (Start-Process -file msiexec -arg $arguments -Passthru)
@@ -59,6 +59,9 @@ $proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList (
 $proc | Wait-Process 
 #>
 
+
+
+<#
 Write-Debug -Message "about to install .NET Core Hosting 7.0.2..."
 # Install Microsoft .Net Core Hosting 7.0.2 (This replaces 6.0.8)
 $exeDotNetTemp = [System.IO.Path]::GetTempPath().ToString() + "dotnet-hosting-7.0.2-win.exe"
@@ -69,9 +72,19 @@ Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/
 # Run the exe with arguments
 $proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList ('/install','/quiet') -WorkingDirectory $exeFileNetCore.Directory.ToString() -Passthru)
 $proc | Wait-Process 
+#>
 
-try
-{
+Write-Debug -Message "about to install .NET Core Hosting 8.0.6..."
+# Install Microsoft .Net Core Hosting 8.0.6 (This replaces 7.0.2)
+$exeDotNetTemp = [System.IO.Path]::GetTempPath().ToString() + "dotnet-hosting-8.0.6-win.exe"
+if (Test-Path $exeDotNetTemp) { Remove-Item $exeDotNetTemp -Force }
+# Download file from Microsoft Downloads and save to local temp file (%LocalAppData%/Temp/2)
+$exeFileNetCore = [System.IO.Path]::GetTempFileName() | Rename-Item -NewName "dotnet-hosting-8.0.6-win.exe" -PassThru
+Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/751d3fcd-72db-4da2-b8d0-709c19442225/33cc492bde704bfd6d70a2b9109005a0/dotnet-hosting-8.0.6-win.exe" -OutFile $exeFileNetCore
+# Run the exe with arguments
+$proc = (Start-Process -FilePath $exeFileNetCore.Name.ToString() -ArgumentList ('/install', '/quiet') -WorkingDirectory $exeFileNetCore.Directory.ToString() -Passthru)
+$proc | Wait-Process 
+try {
     # Disable Internet Explorer Enhanced Security Configuration
     $AdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
     $UserKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
@@ -82,7 +95,7 @@ try
 catch {}
 
 # Copy eShoponWeb from Published Share and restart IIS
-$SharePath = '\\'+$VSServerName+'\eShopPub'
+$SharePath = '\\' + $VSServerName + '\eShopPub'
 New-SmbMapping -LocalPath v: -RemotePath $SharePath -UserName $username -Password $password -Verbose >> c:\windows\temp\MapSetupWebServers.log
 Copy-Item "V:\wwwroot" -Destination "C:\inetpub\" -Recurse -Force -Verbose >> c:\windows\temp\copySetupWebServers.log
 
