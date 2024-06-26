@@ -52,10 +52,10 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2022-03-01' = {
   location: Location
   identity: {
     type: 'UserAssigned'
-    userAssignedIdentities: { '${userManagedIdentity.id}': {} } 
+    userAssignedIdentities: { '${userManagedIdentity.id}': {} }
   }
   sku: {
-    name: 'Standard_DS3_v2'
+    name: 'Standard_D4s_v3'
     tier: 'Standard'
     capacity: 2
   }
@@ -122,9 +122,8 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2022-03-01' = {
               type: 'CustomScriptExtension'
               typeHandlerVersion: '1.10'
               autoUpgradeMinorVersion: true
-              settings: {
-              }
-              protectedSettings:{
+              settings: {}
+              protectedSettings: {
                 fileUris: [
                   '${ArtifactsURL}${WebServersScriptName}'
                 ]

@@ -631,7 +631,7 @@ var VirtualMachines = [
   {
     Name: sqlServerName
     NIC: 'nic-wth-monitor-db-d-${NameSuffix}'
-    Size: 'Standard_DS3_v2'
+    Size: 'Standard_D4s_v3'
     ImageVersion: 'Standard'
     ImagePublisher: 'MicrosoftSQLServer'
     ImageOffer: 'SQL2016SP1-WS2016'
